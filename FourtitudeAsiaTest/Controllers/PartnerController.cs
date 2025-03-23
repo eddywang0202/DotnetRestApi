@@ -1,20 +1,20 @@
 ﻿using FourtitudeAsiaTest.BLL;
+using FourtitudeAsiaTest.Loggers;
 using FourtitudeAsiaTest.Model;
-using log4net;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using System;
 
 namespace FourtitudeAsiaTest.Controllers
 {
     [ApiController]
     public class PartnerController : ControllerBase
     {
-        private static readonly ILog _log = LogManager.GetLogger(typeof(PartnerController));
-        private readonly IPartnerBLL _partnerBLL;
+        private readonly IAppLogger<PartnerController> _logger;
+        private readonly IItemBLL _partnerBLL;
 
-        public PartnerController(ILogger<PartnerController> logger, IPartnerBLL partnerBLL)
+        public PartnerController(IAppLogger<PartnerController> logger, IItemBLL partnerBLL)
         {
+            _logger = logger;
             _partnerBLL = partnerBLL;
         }
 
@@ -22,37 +22,28 @@ namespace FourtitudeAsiaTest.Controllers
         [Route("api/submittrxmessage")]
         public IActionResult Submittrxmessage(SubmittrxmessageReq req)
         {
-            _log.Info($"Submittrxmessage start, req:{JsonConvert.SerializeObject(req)}");
+            _logger.LogInfo($"Submittrxmessage start, req:{JsonConvert.SerializeObject(req)}");
 
-            var result = new BaseResponse { Result = 0 };
-
-            //validation
-            result.Resultmessage =
-                string.IsNullOrEmpty(req.Partnerkey) ? "Partnerkey is required" :
-                string.IsNullOrEmpty(req.Partnerrefno) ? "Partnerrefno is required" :
-                string.IsNullOrEmpty(req.Partnerpassword) ? "Partnerpassword is required" :
-                string.IsNullOrEmpty(req.Timestamp) ? "Timestamp is required" :
-                string.IsNullOrEmpty(req.Sig) ? "Sig is required" :
-                Math.Abs((DateTime.UtcNow - DateTime.Parse(req.Timestamp).ToUniversalTime()).Minutes) > 5 ? "Expired" :
-                !_partnerBLL.IsAuthorized(req) ? "Access Denied!" :
-                !_partnerBLL.IsValidTotalAmount(req) ? "Total amount not match" :
-                req.Totalamount <= 0 ? "Totalamount must positive value" : "";
-
-            if (!string.IsNullOrEmpty(result.Resultmessage))
+            try
             {
-                _log.Info($"Submittrxmessage end, res:{JsonConvert.SerializeObject(result)}");
+                var finalResult = _partnerBLL.CalculateFinalAmount(req.Totalamount);
+
+                var result = new BaseResponse
+                {
+                    Result = 1,
+                    TotalAmount = req.Totalamount,
+                    TotalDiscount = (int)finalResult.TotalDiscount,
+                    FinalAmount = (int)finalResult.FinalAmount
+                };
+
+                _logger.LogInfo($"Submittrxmessage end, res:{JsonConvert.SerializeObject(result)}");
                 return Ok(result);
             }
-
-            var finalResult = _partnerBLL.CalculateFinalAmount(req);
-
-            result.TotalAmount = req.Totalamount;
-            result.TotalDiscount = (int)finalResult.TotalDiscount;
-            result.FinalAmount = (int)finalResult.FinalAmount;
-            result.Result = 1;
-
-            _log.Info($"Submittrxmessage end, res:{JsonConvert.SerializeObject(result)}");
-            return Ok(result);
+            catch (Exception ex)
+            {
+                _logger.LogError($"Submittrxmessage error, ex: {ex.Message}", ex);
+                return StatusCode(StatusCodes.Status500InternalServerError, new BaseResponse { Result = 0, Resultmessage = ex.Message });
+            }
         }
     }
 }

@@ -5,6 +5,8 @@ VisualStudioVersion = 17.5.33530.505
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FourtitudeAsiaTest", "FourtitudeAsiaTest\FourtitudeAsiaTest.csproj", "{C2D7B3BB-4F15-4938-8A1D-62F044B1E742}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FourtitudeAsiaTest.Tests", "FourtitudeAsiaTest.Tests\FourtitudeAsiaTest.Tests.csproj", "{B2EA0423-A592-38F2-55DC-36E09C3719F0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{C2D7B3BB-4F15-4938-8A1D-62F044B1E742}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C2D7B3BB-4F15-4938-8A1D-62F044B1E742}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C2D7B3BB-4F15-4938-8A1D-62F044B1E742}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2EA0423-A592-38F2-55DC-36E09C3719F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2EA0423-A592-38F2-55DC-36E09C3719F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2EA0423-A592-38F2-55DC-36E09C3719F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2EA0423-A592-38F2-55DC-36E09C3719F0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

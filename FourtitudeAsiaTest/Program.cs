@@ -1,7 +1,14 @@
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using FourtitudeAsiaTest.BLL;
+using FourtitudeAsiaTest.Loggers;
+using FourtitudeAsiaTest.Middleware;
 using FourtitudeAsiaTest.Model;
-using log4net;
+using FourtitudeAsiaTest.Validators;
 using log4net.Config;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,15 +19,36 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.SuppressModelStateInvalidFilter = true; // Disable built-in validation
+});
+
+builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<ValidateModelFilter>();
+});
+
+//Manually register FluentValidation and your validator
+builder.Services.AddValidatorsFromAssemblyContaining<SubmitTransReqValidator>();
+builder.Services.AddFluentValidationAutoValidation(); // Enables automatic validation
+
+builder.Services.AddControllers()
+.AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+});
+
 //dependency
-builder.Services.AddScoped<IPartnerBLL, PartnerBLL>();
+builder.Services.AddScoped<IItemBLL, ItemBLL>();
 
 //appSettings
 builder.Services.Configure<PartnerSettings>(builder.Configuration.GetSection("PartnerSettings"));
 
-// Configure log4net
-var logRepository = LogManager.GetRepository(System.Reflection.Assembly.GetEntryAssembly());
-XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
+//log4net
+XmlConfigurator.Configure(new FileInfo("Configs/log4net.config"));
+builder.Services.AddSingleton(typeof(IAppLogger<>), typeof(Log4NetLogger<>));
 
 var app = builder.Build();
 
